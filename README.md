@@ -1,17 +1,17 @@
 # BYOVD EDRKiller
 
-## Disclaimer
-⚠️ This project is provided exclusively for educational purposes and is intended to be used only in authorized environments. You may only run or deploy this project on systems you own or have explicit, documented permission to test. Any unauthorized use of this project against systems without consent is strictly prohibited and may be illegal.
+## Aviso legal
+⚠️ Este proyecto se proporciona exclusivamente con fines educativos y está destinado únicamente a su uso en entornos autorizados. Solo puedes ejecutar o desplegar este proyecto en sistemas que poseas o que tengas permiso explícito y documentado para hacer pruebas. Cualquier uso no autorizado de este proyecto contra sistemas sin consentimiento está estrictamente prohibido y puede ser ilegal.
 
-By using this project, you agree to use it responsibly and ethically. The author assumes no liability for misuse or any consequences arising from the use of this project.
+Al utilizar este proyecto, aceptas utilizarlo de forma responsable y ética. El autor no asume ninguna responsabilidad por el uso indebido ni por las consecuencias derivadas del uso de este proyecto.
 
-Tested on:
+Probado en:
 - Windows 11 (24H2)
 - Windows Server 2022 (21H2)
 
 ---
 
-## Project Structure
+## Estructura del proyecto
 
 ```
 BYOVD_EDRKiller-main/
@@ -278,6 +278,6 @@ Solo `Wsftprm` es funcional en sistemas Windows 11 actualizados con Secure Boot,
 
 ## Créditos
 Me inspiré para ampliar las herramientas que ofrece el Laboratorio de Evasión (CETP de [Altered Security](https://www.alteredsecurity.com/evasionlab)), impartido por [Saad Ahla](https://www.linkedin.com/in/saad-ahla/).
-Y tambien en [0xJs](https://github.com/0xJs/BYOVD_EDRKiller?tab=readme-ov-file) ya que use su repositorio para compilar los drivers, lo unico que hice fue hacer unas correcciones al codigo ya que la compilacion daba errores por version o de sintaxis y en algunas variables que no lei bien, justo por eso recominedo usar OpenCode, ya que pueden usarlo si les manda error al compilar el driver, y lo pueden solucionar rapido.
+Y tambien en [0xJs](https://github.com/0xJs/BYOVD_EDRKiller?tab=readme-ov-file) ya que use su repositorio para compilar los drivers, lo unico que hice fue hacer unas correcciones al codigo ya que la compilacion daba errores por version o de sintaxis y en algunas variables que no leia bien, justo por eso recominedo usar OpenCode, ya que pueden usarlo si les manda error al compilar el driver, y lo pueden solucionar rapido.
 
 
