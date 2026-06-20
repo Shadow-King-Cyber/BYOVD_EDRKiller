@@ -6,8 +6,7 @@
 Al utilizar este proyecto, aceptas utilizarlo de forma responsable y ética. El autor no asume ninguna responsabilidad por el uso indebido ni por las consecuencias derivadas del uso de este proyecto.
 
 Probado en:
-- Windows 11 (24H2)
-- Windows Server 2022 (21H2)
+- Windows 11 Home actualizacion 06/2026
 
 ---
 
@@ -48,10 +47,12 @@ Cada carpeta es un proyecto independiente y autocontenido. Los tres comparten la
 
 ### Flujo de ejecución común
 
-1. **Write** → Escribe el driver vulnerable en `C:\Windows\System32\Drivers\<FILE>`
+1. **Write** → Escribe el driver vulnerable en disco (original: `C:\Windows\System32\Drivers\<FILE>`; con modificación: directorio actual)
 2. **Load** → Registra el driver como servicio y lo inicia (SCM API)
 3. **Kill loop** → Enumeración de procesos EDR mediante `NtQuerySystemInformation` + envío de IOCTL en loop hasta presionar `q`
 4. **Cleanup** → Detiene el servicio, elimina el driver y borra el archivo .sys
+
+> ⚠️ **Nota sobre Windows Defender:** En sistemas con Tamper Protection habilitado, Defender elimina inmediatamente el driver de `C:\Windows\System32\Drivers\` aunque la carpeta del proyecto esté excluida. La solución es modificar `driver_un_loading.c` para usar `GetCurrentDirectoryW` en lugar de `GetWindowsDirectoryW`, escribiendo el driver en la carpeta actual. Ver [Paso 5 — Modificación para evitar cuarentena de Defender](#paso-5-ejecutar-el-edrkiller).
 
 ### EDRs objetivo (los mismos en los 3 variantes)
 
@@ -234,19 +235,38 @@ EDRKiller.exe
 
 **Lo que ocurre durante la ejecución:**
 
-1. **Escritura del driver** → El programa extrae `wsftprm.sys` de su propio binario y lo escribe en `C:\Windows\System32\Drivers\wsftprm.sys`
+1. **Escritura del driver** → El programa extrae `wsftprm.sys` de su propio binario y lo escribe en disco
 2. **Carga del driver** → Usa el API de Servicios de Windows (SCM) para registrar el driver como servicio y lo inicia
 3. **Búsqueda de EDRs** → Enumera procesos activos buscando procesos de EDR (Defender, Elastic, etc.)
 4. **Terminación** → Envía el IOCTL vulnerable al driver para matar cada proceso de EDR encontrado
 5. **Loop** → Repite los pasos 3-4 cada 1 segundo hasta que se presione la tecla `q`
 6. **Limpieza** → Al salir, detiene el servicio del driver y elimina el archivo `.sys`
 
+**Problema conocido — Cuarentena del driver por Windows Defender:**
+
+En Windows 11 con Tamper Protection habilitado, Windows Defender elimina inmediatamente el `.sys` de `C:\Windows\System32\Drivers\` aunque la carpeta del proyecto esté excluida, causando el error `StartServiceW - Failed to start service. (errorcode: 2)` (`ERROR_FILE_NOT_FOUND`).
+
+**Solución aplicada y probada en Windows 11 Home:**
+
+Modificar `driver_un_loading.c` — función `GenerateDriverFullPath`:
+
+```c
+// Cambiar GetWindowsDirectoryW por GetCurrentDirectoryW
+if (GetCurrentDirectoryW(_countof(szCurrPath), szCurrPath) == 0) { ... }
+swprintf_s(pszDriverPath, cchDriverPath, L"%ls\\%ls", szCurrPath, pszDriverName);
+```
+
+Esto hace que el driver se escriba en la carpeta actual del proyecto (que está excluida de Defender) en lugar de `System32\Drivers\`. El servicio se carga desde ahí sin problema. Al salir, el programa limpia el servicio y borra el `.sys` normalmente.
+
+**Compilar tras la modificación:**
+
+```cmd
+cd Wsftprm\EDRKiller_Wsftprm
+cl /nologo /O2 /W3 /WX /permissive- /DNDEBUG /DUNICODE /D_UNICODE /utf-8 config.c driver_un_loading.c helpers.c IO.c killEDR.c main.c /link /out:EDRKiller.exe advapi32.lib
+```
+
 **Posible reacción de Windows Defender:**
 
-- Defender **puede ser killzado** por el programa si detecta sus procesos (MsMpEng.exe, NisSrv.exe, etc.) durante el loop de enumeración.
-- Si Defender se adelanta antes de que el driver esté cargado, puede **poner en cuarentena el .exe** o bloquear la ejecución. Para evitarlo:
-  - Deshabilitar la protección en tiempo real temporalmente (Windows Security → Virus & threat protection → Manage settings → Real-time protection → Off).
-  - O agregar una exclusión a la carpeta del proyecto.
 - Una vez que el driver esté cargado y el loop esté corriendo, los procesos de Defender serán terminados y ya no podrá interferir.
 
 ### Paso 6: Detener y limpiar manualmente (si es necesario)
@@ -256,7 +276,10 @@ Si el programa no hizo la limpieza automática o falló a medio camino:
 ```cmd
 sc stop wsftprm
 sc delete wsftprm
+:: Si se usó la ruta original (System32\Drivers):
 del C:\Windows\System32\Drivers\wsftprm.sys
+:: Si se usó la modificación con GetCurrentDirectoryW:
+del wsftprm.sys
 ```
 
 ---

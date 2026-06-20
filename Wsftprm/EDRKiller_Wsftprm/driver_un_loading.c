@@ -14,27 +14,26 @@ BOOL GenerateDriverFullPath(IN const LPCWSTR pszDriverName, IN size_t cchDriverP
         goto _cleanUp;
     }
 
-    WCHAR szWinPath[MAX_PATH] = { 0 }; // Stores the path to the Windows directory
+    WCHAR szCurrPath[MAX_PATH] = { 0 }; // Stores the path to the current directory
 
-    // Get the path of the windows directory (C:\Windows)
-    // https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getwindowsdirectoryw
-    if (GetWindowsDirectoryW(
-        szWinPath,            // Pointer to buffer which stores the LPWSTR buffer
-        _countof(szWinPath)   // Max size of the buffer
+    // Get the current working directory
+    // https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getcurrentdirectory
+    if (GetCurrentDirectoryW(
+        _countof(szCurrPath), // Max size of the buffer
+        szCurrPath            // Pointer to buffer which stores the LPWSTR buffer
     ) == 0) {
-        errorWin32("GetWindowsDirectoryW - Failed to get path of windows directory");
+        errorWin32("GetCurrentDirectoryW - Failed to get current directory");
         bSTATE = FALSE;
         goto _cleanUp;
     }
-    infoW_t(L"GetWindowsDirectoryW - Windows path \"%ls\"", szWinPath);
+    infoW_t(L"GetCurrentDirectoryW - Current path \"%ls\"", szCurrPath);
 
-    // Build "<SystemRoot>\\System32\\drivers\\pszDriverName"
+    // Build "<CurrentDir>\\pszDriverName"
     int n = swprintf_s(
         pszDriverPath,          // Store the location in here 
         cchDriverPath,          // Size of destination buffer in WCHARs
-        L"%ls%ls%ls",           // Format: <WindowsPath> + <VULNDRIVERPATH> + <DriverName>
-        szWinPath,              // Input <WindowsPath>
-        g_VULNDRIVERPATH,       // Input rest of the driver path
+        L"%ls\\%ls",            // Format: <CurrentPath> + <DriverName>
+        szCurrPath,             // Input <CurrentPath>
         pszDriverName           // Input driver name
     );
     if (n < 0) {
@@ -189,7 +188,7 @@ BOOL LoadDriver(IN const LPCWSTR lpwcDriverName, IN LPCWSTR lpwcDriverPath) {
         }
     }
     else {
-        info_t("StartServiceW - Driver started", hService);
+        info_t("StartServiceW - Driver started");
     }
 
 _cleanUp:
