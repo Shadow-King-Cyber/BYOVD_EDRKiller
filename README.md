@@ -14,9 +14,10 @@ Probado en:
 
 ```
 BYOVD_EDRKiller-main/
-├── Wsftprm/              # Variante 1: wsftprm.sys (Warsaw / Banco do Brasil)
-├── BdApiUtil/            # Variante 2: BdApiUtil.sys (Bitdefender)
-├── truesight/            # Variante 3: truesight.sys (Adlice / RogueKiller)
+├── Wsftprm/                      # Variante 1: wsftprm.sys (Warsaw / Banco do Brasil)
+│   └── EnableDefender/           # Herramienta para re-habilitar Windows Defender
+├── BdApiUtil/                    # Variante 2: BdApiUtil.sys (Bitdefender)
+├── truesight/                    # Variante 3: truesight.sys (Adlice / RogueKiller)
 ├── .gitignore
 └── README.md
 ```
@@ -76,6 +77,8 @@ Cada carpeta es un proyecto independiente y autocontenido. Los tres comparten la
 | Windows | 7 a 11 (x64) — funciona en Windows 11 24H2 con HVCI + Secure Boot ✅ |
 | Blocklist MS | ❌ No bloqueado |
 | Firmado | Sí, firma válida aceptada por el sistema |
+
+> **EnableDefender** (`Wsftprm/EnableDefender/`): Herramienta complementaria que reactiva todos los servicios de Windows Defender (WinDefend, WdNisSvc, Sense, MpKslDrv, WdBoot, WdFilter, WdNisDrv, SecurityHealthService) después de haber sido terminados por el EDRKiller. Se compila por separado y debe ejecutarse como ADMINISTRADOR.
 
 ### 2. BdApiUtil — `BdApiUtil.sys` (carpeta `BdApiUtil/`)
 
@@ -155,6 +158,7 @@ Requisito: **Visual Studio 2022 Build Tools** o **Visual Studio 2022 Community**
 msbuild Wsftprm\EDRKiller_Wsftprm\EDRKiller_Wsftprm.vcxproj /p:Configuration=Release /p:Platform=x64 /t:Build
 msbuild BdApiUtil\EDRKiller_BdApiUtil\EDRKiller_BdApiUtil.vcxproj /p:Configuration=Release /p:Platform=x64 /t:Build
 msbuild truesight\EDRKiller_truesight\EDRKiller_truesight.vcxproj /p:Configuration=Release /p:Platform=x64 /t:Build
+msbuild Wsftprm\EnableDefender\EnableDefender.vcxproj /p:Configuration=Release /p:Platform=x64 /t:Build
 ```
 
 #### Opción 2 — cl.exe directo (tras vcvars64.bat)
@@ -173,6 +177,10 @@ cl /nologo /O2 /W3 /WX /permissive- /DNDEBUG /DUNICODE /D_UNICODE /utf-8 config.
 :: truesight
 cd ..\..\truesight\EDRKiller_truesight
 cl /nologo /O2 /W3 /WX /permissive- /DNDEBUG /DUNICODE /D_UNICODE /utf-8 config.c driver_un_loading.c helpers.c IO.c killEDR.c main.c /link /out:EDRKiller_truesight.exe advapi32.lib
+
+:: EnableDefender (herramienta complementaria)
+cd ..\..\Wsftprm\EnableDefender
+cl /nologo /O2 /W3 /WX /permissive- /DNDEBUG /DUNICODE /D_UNICODE /utf-8 main.c /link /out:EnableDefender.exe advapi32.lib
 ```
 ---
 
