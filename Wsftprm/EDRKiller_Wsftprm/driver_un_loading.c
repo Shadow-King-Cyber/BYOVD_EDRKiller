@@ -69,7 +69,7 @@ BOOL WriteDriverToFile(IN const LPCWSTR pszDriverName, IN PBYTE pbDriver, IN DWO
         bSTATE = FALSE;
         goto _cleanUp;
     }
-    info_t("malloc - Allocated %d bytes of memory for driver path at 0x%p", MAX_PATH * sizeof(WCHAR), szVulnDriverPath);
+    info_t("malloc - Allocated %zu bytes of memory for driver path at 0x%p", MAX_PATH * sizeof(WCHAR), szVulnDriverPath);
 
     // Generate driver path by calling the function
     info_t("GenerateDriverFullPath - Genereting driver directory");
